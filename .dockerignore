@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# uv
+uv.lock
+.venv/
+venv/
+
+# Environment (НЕ копировать в образ!)
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.mypy_cache/
+.pytest_cache/
+
+# Logs
+*.log
+logs/
+
+# Docs & tests (ускоряют сборку)
+README.md
+docs/
+tests/
+pytest.ini
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Alembic migrations (устанавливаются в образе)
+src/backend/alembic/versions/
