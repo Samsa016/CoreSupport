@@ -3,8 +3,8 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import declared_attr
 
 
-from src.backend.utils import camel_case_to_snake_case
-from src.backend.core.config import settings
+from backend.utils import camel_case_to_snake_case
+from backend.core.config import settings
 
 
 class Base(DeclarativeBase):
