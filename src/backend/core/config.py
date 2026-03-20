@@ -73,7 +73,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=(
-            BASE_DIR / ".env_template",
+            BASE_DIR / ".env.template",
             BASE_DIR / ".env",
         ),
         case_sensitive=False,
