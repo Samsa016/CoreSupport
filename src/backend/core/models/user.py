@@ -4,7 +4,7 @@ from backend.core.models import Base
 from backend.core.models.mixins import IdIntPk
 from backend.core.types import UserIdType
 
-from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
+from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
