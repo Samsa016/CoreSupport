@@ -58,6 +58,7 @@ class AccessToken(BaseModel):
 
 class ApiV1Prefix(BaseModel):
     auth: str = "/auth"
+    users: str = "/users"
     prefix: str = "/v1"
 
 
