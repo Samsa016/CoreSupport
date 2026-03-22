@@ -17,5 +17,19 @@ services:
       # Сохраняем данные БД на жесткий диск, чтобы они не удалились при остановке контейнера
       - coresupport_pg_data:/var/lib/postgresql/data
 
+  backend:
+    build: .  # Говорит докеру: "собери образ из Dockerfile в этой же папке"
+    container_name: coresupport_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      # Вот здесь мы БЕЗОПАСНО прокидываем переменные!
+      # Docker сам прочитает файл и передаст переменные приложению.
+      - src/.env
+    depends_on:
+      # Гарантируем, что бэкенд не начнет запускаться раньше базы данных
+      - db
+
 volumes:
   coresupport_pg_data:
