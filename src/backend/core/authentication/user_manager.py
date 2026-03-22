@@ -2,7 +2,7 @@ import logging
 from typing import Optional, TYPE_CHECKING
 
 from fastapi_users import BaseUserManager, IntegerIDMixin
-from fastapi_users.db import BaseUserDatabase
+from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 
 from backend.core.models import User
 from backend.core.config import settings
@@ -22,7 +22,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, UserIdType]):
 
     def __init__(
         self,
-        user_db: BaseUserDatabase[User, UserIdType],
+        user_db: SQLAlchemyUserDatabase,
         password_helper: Optional["PasswordHelperProtocol"] = None,
     ):
         super().__init__(
