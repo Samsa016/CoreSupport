@@ -14,4 +14,5 @@ async def get_users_db(
         Depends(db_helper.session_getter),
     ],
 ):
-    yield User.get_db(session=session)
+    async for db in User.get_db(session=session):
+        yield db
