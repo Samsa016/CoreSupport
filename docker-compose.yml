@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: coresupport_postgres
+    restart: unless-stopped
+    environment:
+      # Эти данные должны совпадать с тем, что у тебя в .env файле
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dbname
+    ports:
+      # Пробрасываем порт из контейнера (5432) на твой компьютер (5432)
+      - "5432:5432"
+    volumes:
+      # Сохраняем данные БД на жесткий диск, чтобы они не удалились при остановке контейнера
+      - coresupport_pg_data:/var/lib/postgresql/data
+
+volumes:
+  coresupport_pg_data:
