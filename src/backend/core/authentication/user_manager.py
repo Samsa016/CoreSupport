@@ -30,7 +30,6 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, UserIdType]):
             password_helper,
         )
 
-
     async def on_after_register(
         self,
         user: User,
