@@ -6,7 +6,7 @@ from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-BASE_DIR = Path.cwd()
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 LOG_DEFAULT_FORMAT = (
