@@ -5,16 +5,12 @@ services:
     image: postgres:15-alpine
     container_name: coresupport_postgres
     restart: unless-stopped
-    environment:
-      # Эти данные должны совпадать с тем, что у тебя в .env файле
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbname
+    env_file:
+      # Читаем переменные для создания БД прямо из .env файла
+      - src/.env
     ports:
-      # Пробрасываем порт из контейнера (5432) на твой компьютер (5432)
       - "5432:5432"
     volumes:
-      # Сохраняем данные БД на жесткий диск, чтобы они не удалились при остановке контейнера
       - coresupport_pg_data:/var/lib/postgresql/data
 
   backend:
@@ -24,11 +20,9 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      # Вот здесь мы БЕЗОПАСНО прокидываем переменные!
       # Docker сам прочитает файл и передаст переменные приложению.
       - src/.env
     depends_on:
-      # Гарантируем, что бэкенд не начнет запускаться раньше базы данных
       - db
 
 volumes:
