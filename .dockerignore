@@ -3,7 +3,6 @@
 .gitignore
 
 # uv
-uv.lock
 .venv/
 venv/
 
