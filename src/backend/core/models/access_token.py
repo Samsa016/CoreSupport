@@ -19,7 +19,7 @@ class AccessToken(Base, SQLAlchemyBaseAccessTokenTable[int]):
     @declared_attr
     def user_id(cls) -> Mapped[int]:
         return mapped_column(
-            Integer, ForeignKey("user.id", ondelete="cascade"), nullable=False
+            Integer, ForeignKey("users.id", ondelete="cascade"), nullable=False
         )
 
     @classmethod

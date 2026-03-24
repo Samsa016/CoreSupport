@@ -4,7 +4,10 @@ from backend.core.authentication.fastapi_users import fastapi_users
 from backend.core import settings
 from backend.core.schemas.user import UserRead, UserUpdate
 
-router = APIRouter(prefix=settings.api.v1.users, tags=["Users"])
+router = APIRouter(
+    prefix=settings.api.v1.users,
+    tags=["Users"],
+)
 
 
 # /me
