@@ -4,7 +4,6 @@ services:
     container_name: coresupport_postgres
     restart: unless-stopped
     env_file:
-      # Читаем переменные для создания БД прямо из .env файла
       - .env
     ports:
       - "5432:5432"
@@ -12,7 +11,7 @@ services:
       - coresupport_pg_data:/var/lib/postgresql/data
 
   backend:
-    build: .  # Говорит докеру: "собери образ из Dockerfile в этой же папке"
+    build: .
     container_name: coresupport_backend
     restart: unless-stopped
     ports:
@@ -21,6 +20,25 @@ services:
       - .env
     depends_on:
       - db
+
+  frontend:
+    build: 
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: coresupport_frontend
+    restart: unless-stopped
+    ports:
+      # Изменил порт на хосте с 3000 на 3001, так как 3000 уже занят
+      - "3001:3000"
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
 
   pgadmin:
     image: dpage/pgadmin4:latest
