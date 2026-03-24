@@ -15,4 +15,5 @@ async def get_access_tokens_db(
         Depends(db_helper.session_getter),
     ],
 ):
-    yield AccessToken.get_db(session=session)
+    async for db in AccessToken.get_db(session=session):
+        yield db
