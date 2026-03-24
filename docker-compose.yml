@@ -1,35 +1,68 @@
 services:
   db:
-    image: postgres:15-alpine
-    container_name: coresupport_postgres
-    restart: unless-stopped
+    image: postgres:16-alpine
+    container_name: coresupport_db
+    restart: always
     env_file:
       - .env
-    ports:
-      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - coresupport_pg_data:/var/lib/postgresql/data
+    networks:
+      - coresupport_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  backend:
-    build: .
-    container_name: coresupport_backend
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: coresupport_pgadmin
+    restart: always
     env_file:
       - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    networks:
+      - coresupport_net
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coresupport_backend
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - coresupport_net
 
   frontend:
-    build: 
+    build:
       context: ./src/frontend
       dockerfile: Dockerfile
+      target: development
     container_name: coresupport_frontend
-    restart: unless-stopped
+    restart: always
     ports:
-      # Изменил порт на хосте с 3000 на 3001, так как 3000 уже занят
-      - "3001:3000"
+      - "3000:3000"
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
@@ -39,18 +72,12 @@ services:
       - WATCHPACK_POLLING=true
     depends_on:
       - backend
+    networks:
+      - coresupport_net
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: coresupport_pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
-    depends_on:
-      - db
+networks:
+  coresupport_net:
+    driver: bridge
 
 volumes:
   coresupport_pg_data:
