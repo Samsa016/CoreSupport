@@ -14,6 +14,7 @@ if str(SRC_DIR) not in sys.path:
 from backend.api import router as api_routes
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,11 +24,6 @@ app.add_middleware(
 )
 
 app.include_router(api_routes)
-
-
-@app.get("/")
-def health_check():
-    return {"status": "ok"}
 
 
 if __name__ == "__main__":
