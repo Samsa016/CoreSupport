@@ -50,6 +50,11 @@ class DatabaseConfig(BaseModel):
     }
 
 
+class OpenAISettings(BaseModel):
+    openrouter_api_key: str
+    base_url: str = "https://openrouter.ai/api/v1"
+
+
 class AccessToken(BaseModel):
     lifetime_seconds: int = 3600
     reset_password_token_secret: str
@@ -57,6 +62,7 @@ class AccessToken(BaseModel):
 
 
 class ApiV1Prefix(BaseModel):
+    chat: str = "/chat"
     auth: str = "/auth"
     users: str = "/users"
     prefix: str = "/v1"
@@ -88,8 +94,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=(
-            BASE_DIR / ".env.template",
-            BASE_DIR / ".env",
+            BASE_DIR.parent / ".env.template",
+            BASE_DIR.parent / ".env",
         ),
         case_sensitive=False,
         env_nested_delimiter="__",
@@ -99,6 +105,7 @@ class Settings(BaseSettings):
 
     access_token: AccessToken
     db: DatabaseConfig
+    openai: OpenAISettings
     logging: LoggingConfig = LoggingConfig()
     api: ApiPrefix = ApiPrefix()
     run: RunConfig = RunConfig()
