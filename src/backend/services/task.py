@@ -76,17 +76,62 @@ class TaskService:
         self.logger.info("Task %s retrieved", task_id)
         return task
 
+    async def take_task(self, task_id: int, worker: User) -> Task:
+        task = await self.get_task_by_id(task_id=task_id)
+
+        if task.assignee_id is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Task is already taken by another worker.",
+            )
+
+        task.assignee_id = worker.id
+        task.status = TaskStatus.IN_PROGRESS
+
+        await self.session.commit()
+        await self.session.refresh(task)
+
+        self.logger.info("Task %s taken by worker %s", task_id, worker.id)
+        return task
+
+    async def release_task(self, task_id: int, worker: User) -> Task:
+        task = await self.get_task_by_id(task_id=task_id)
+
+        if task.assignee_id != worker.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only release your own task.",
+            )
+
+        task.assignee_id = None
+        task.status = TaskStatus.TODO
+
+        await self.session.commit()
+        await self.session.refresh(task)
+
+        self.logger.info("Task %s released by worker %s", task_id, worker.id)
+        return task
+
     async def assign_task(self, task_id: int, assignee_id: Optional[int]) -> Task:
         task = await self.get_task_by_id(task_id)
 
+        previous_assignee = task.assignee_id
         task.assignee_id = assignee_id
 
         if assignee_id is not None:
             task.status = TaskStatus.IN_PROGRESS
-            self.logger.info("Task %s assigned to user %s", task_id, assignee_id)
+            if previous_assignee and previous_assignee != assignee_id:
+                self.logger.info(
+                    "Task %s reassigned from user %s to user %s",
+                    task_id,
+                    previous_assignee,
+                    assignee_id,
+                )
+            else:
+                self.logger.info("Task %s assigned to user %s", task_id, assignee_id)
         else:
             task.status = TaskStatus.TODO
-            self.logger.info("Task %s released (now free)", task_id)
+            self.logger.info("Task %s released by manager (now free)", task_id)
 
         await self.session.commit()
         await self.session.refresh(task)
