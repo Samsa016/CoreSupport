@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 from enum import Enum as PyEnum
 
@@ -9,10 +9,11 @@ from backend.core.types import UserIdType
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+    from backend.core.models.task import Task
 
 
 class UserRole(str, PyEnum):
@@ -36,6 +37,8 @@ class User(Base, IdIntPk, SQLAlchemyBaseUserTable[UserIdType]):
         server_default="false",
         nullable=False,
     )
+
+    tasks: Mapped[List["Task"]] = relationship(back_populates="assignee")
 
     @classmethod
     async def get_db(cls, session: "AsyncSession"):
