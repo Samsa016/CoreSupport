@@ -62,7 +62,8 @@ class AccessToken(BaseModel):
 
 
 class ApiV1Prefix(BaseModel):
-    chat: str = "/chat"
+    tasks: str = "/tasks"
+    agent: str = "/agent"
     auth: str = "/auth"
     users: str = "/users"
     prefix: str = "/v1"
