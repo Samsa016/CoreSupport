@@ -25,14 +25,6 @@ class TaskUpdate(BaseModel):
 
 
 class TaskAssign(BaseModel):
-    """Схема для назначения / снятия исполнителя с задачи.
-
-    Используется для двух сценариев:
-      - Рабочий сам берёт задачу (фронт отправляет свой user_id).
-      - Менеджер назначает кого-то (фронт отправляет нужный user_id).
-      - Для освобождения задачи → передаётся assignee_id=None.
-    """
-
     assignee_id: Optional[int] = Field(
         None, description="ID исполнителя. None = задача свободна"
     )
