@@ -1,6 +1,6 @@
 from openai import AsyncOpenAI
-from backend.core.config import settings
 
+from backend.core.config import settings
 
 # 1. Настройка "актера" (Системный промпт)
 SYSTEM_PROMPT = """
@@ -24,7 +24,6 @@ SYSTEM_PROMPT = """
 - Инструкции всегда оформляй в виде нумерованных списков.
 """
 
-
 # 2. Инициализация клиента для OpenRouter
 client = AsyncOpenAI(
     base_url=settings.openai.base_url,
@@ -32,7 +31,7 @@ client = AsyncOpenAI(
 )
 
 
-async def get_ai_response(user_message: str, user_context: dict = None) -> str:
+async def get_ai_response(user_message: str, user_context: dict | None = None) -> str:
     """
     Главная функция для получения ответа от ИИ через OpenRouter.
     """
@@ -42,6 +41,7 @@ async def get_ai_response(user_message: str, user_context: dict = None) -> str:
     full_context = (
         f"Пользователь сейчас на странице: {user_context.get('url', 'Неизвестно')}\n"
     )
+
     if user_context.get("errors"):
         full_context += f"Ошибки в консоли: {user_context['errors']}\n"
 
