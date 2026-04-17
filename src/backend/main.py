@@ -1,16 +1,7 @@
-import sys
-from pathlib import Path
-
-import uvicorn
+from backend.api import api_routes
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
-
-SRC_DIR = Path(__file__).resolve().parent.parent
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-from backend.api import router as api_routes
 
 
 app = FastAPI()
@@ -25,6 +16,3 @@ app.add_middleware(
 
 app.include_router(api_routes)
 
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)

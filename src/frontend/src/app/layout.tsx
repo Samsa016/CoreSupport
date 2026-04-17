@@ -1,17 +1,14 @@
-import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
-import "./globals.scss";
+'use client';
+
+import { Outfit } from 'next/font/google';
+import './globals.scss';
+import { AuthProvider, ToastProvider } from '@/shared/providers';
 
 const outfit = Outfit({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  variable: '--font-sans',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
 });
-
-export const metadata: Metadata = {
-  title: "CoreSupport | Digital Agency",
-  description: "Next Generation Platform",
-};
 
 export default function RootLayout({
   children,
@@ -20,7 +17,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${outfit.variable}`}>
-      <body>{children}</body>
+      <head>
+        <title>CoreSupport | Task Management</title>
+        <meta name="description" content="CoreSupport — streamline your team workflow with smart task management, real-time collaboration, and AI-powered assistance." />
+      </head>
+      <body>
+        <ToastProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ToastProvider>
+      </body>
     </html>
   );
 }

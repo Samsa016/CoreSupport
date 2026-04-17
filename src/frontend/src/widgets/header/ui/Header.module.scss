@@ -2,103 +2,65 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 2rem;
-  background: transparent;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.searchBar {
-  position: relative;
-  width: 400px;
-  max-width: 100%;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.searchIcon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-secondary);
+.logoIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
 }
 
-.searchInput {
-  width: 100%;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-full);
-  padding: 0.75rem 1rem 0.75rem 3rem;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(var(--glass-blur));
-
-  &:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  &::placeholder {
-    color: var(--text-tertiary);
-  }
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #ffffff, #a1a1aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-}
-
-.iconButton {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text-secondary);
-
-  &:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.08);
-  }
-}
-
-.notificationDot {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  width: 6px;
-  height: 6px;
-  background-color: var(--accent-danger);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent-danger);
+  gap: 1.25rem;
 }
 
 .profile {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding-left: 1.5rem;
-  border-left: 1px solid var(--glass-border);
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  border: 1px solid var(--glass-border);
 }
 
 .profileInfo {
@@ -107,12 +69,35 @@
   gap: 2px;
 }
 
-.name {
-  font-weight: 600;
-  font-size: 0.95rem;
+.email {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
-.status {
-  padding: 0.2rem 0.5rem;
-  font-size: 0.7rem;
+.roleBadge {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.675rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.logoutBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--accent-danger);
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
 }

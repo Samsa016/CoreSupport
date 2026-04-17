@@ -6,7 +6,7 @@ from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
 
 LOG_DEFAULT_FORMAT = (
@@ -90,13 +90,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
     ]
-    # Тут нужно прописать путь к static файлам
-    # Тут нужно прописать путь к image
-
     model_config = SettingsConfigDict(
         env_file=(
-            BASE_DIR.parent / ".env.template",
-            BASE_DIR.parent / ".env",
+            BASE_DIR / ".env.template",
+            BASE_DIR / ".env",
         ),
         case_sensitive=False,
         env_nested_delimiter="__",
