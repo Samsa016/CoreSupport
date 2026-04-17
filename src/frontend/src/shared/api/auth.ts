@@ -1,20 +1,18 @@
-import { apiClient } from './client';
-import { User, LoginResponse } from '@/shared/types';
+import { http, endpoints } from './client'
+import { User, LoginResponse } from '@/shared/types'
 
-export const authApi = {
-  login: async (username: string, password: string): Promise<LoginResponse> => {
-    const params = new URLSearchParams();
-    params.append('username', username);
-    params.append('password', password);
+const FORM_CONFIG = {
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+}
 
-    const { data } = await apiClient.post<LoginResponse>('/auth/login', params, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-    return data;
-  },
+export function login(username: string, password: string) {
+  return http.post<LoginResponse>(
+    endpoints.auth.login,
+    new URLSearchParams({ username, password }),
+    FORM_CONFIG,
+  )
+}
 
-  getMe: async (): Promise<User> => {
-    const { data } = await apiClient.get<User>('/users/me');
-    return data;
-  },
-};
+export function getMe() {
+  return http.get<User>(endpoints.auth.me)
+}

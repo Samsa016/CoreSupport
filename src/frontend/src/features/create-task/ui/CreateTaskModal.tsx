@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Modal, Button } from '@/shared/ui';
+import React, { useState, useCallback } from 'react';
+import { Modal, Button, FormField, SegmentedControl } from '@/shared/ui';
 import { tasksApi } from '@/shared/api';
 import { TaskPriority } from '@/shared/types';
-import { useToast } from '@/shared/providers';
+import { useApiAction } from '@/shared/hooks';
+import { PRIORITY_OPTIONS } from '@/shared/lib/constants';
 import styles from './CreateTaskModal.module.scss';
 
 interface CreateTaskModalProps {
@@ -17,82 +18,69 @@ export const CreateTaskModal = ({ isOpen, onClose, onSuccess }: CreateTaskModalP
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { showToast } = useToast();
+
+  const resetForm = useCallback(() => {
+    setTitle('');
+    setContent('');
+    setPriority('medium');
+  }, []);
+
+  const createAction = useCallback(
+    () => tasksApi.create({
+      title: title.trim(),
+      content: content.trim() || null,
+      priority,
+    }),
+    [title, content, priority],
+  );
+
+  const { execute, loading, error, clearError } = useApiAction(createAction, {
+    successMessage: 'Task created successfully',
+    errorFallback: 'Failed to create task',
+    onSuccess: () => {
+      resetForm();
+      onSuccess();
+      onClose();
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setError('Title is required');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      await tasksApi.create({
-        title: title.trim(),
-        content: content.trim() || null,
-        priority,
-      });
-      showToast('Task created successfully', 'success');
-      setTitle('');
-      setContent('');
-      setPriority('medium');
-      onSuccess();
-      onClose();
-    } catch (err: any) {
-      const detail = err.response?.data?.detail || 'Failed to create task';
-      setError(detail);
-      showToast(detail, 'error');
-    } finally {
-      setLoading(false);
-    }
+    if (!title.trim()) return;
+    clearError();
+    await execute();
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Task">
       <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.field}>
-          <label className={styles.label}>Title *</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={styles.input}
-            placeholder="Enter task title..."
-            maxLength={255}
-            autoFocus
-          />
-        </div>
+        <FormField
+          label="Title *"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter task title..."
+          maxLength={255}
+          autoFocus
+        />
 
-        <div className={styles.field}>
-          <label className={styles.label}>Description</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className={styles.textarea}
-            placeholder="Optional task description..."
-            rows={4}
-          />
-        </div>
+        <FormField
+          label="Description"
+          as="textarea"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Optional task description..."
+          rows={4}
+        />
 
         <div className={styles.field}>
           <label className={styles.label}>Priority</label>
-          <div className={styles.priorityGroup}>
-            {(['high', 'medium', 'low'] as TaskPriority[]).map((p) => (
-              <button
-                key={p}
-                type="button"
-                className={`${styles.priorityBtn} ${priority === p ? styles.active : ''} ${styles[p]}`}
-                onClick={() => setPriority(p)}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={PRIORITY_OPTIONS}
+            value={priority}
+            onChange={setPriority}
+            variant="priority"
+          />
         </div>
 
         {error && <div className={styles.error}>{error}</div>}
@@ -101,7 +89,7 @@ export const CreateTaskModal = ({ isOpen, onClose, onSuccess }: CreateTaskModalP
           <Button variant="secondary" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading || !title.trim()}>
             {loading ? 'Creating...' : 'Create Task'}
           </Button>
         </div>

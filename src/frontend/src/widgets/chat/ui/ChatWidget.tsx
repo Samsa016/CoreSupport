@@ -1,82 +1,42 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { agentApi } from '@/shared/api';
+import { useChat } from '@/shared/hooks';
 import styles from './ChatWidget.module.scss';
 
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
+/**
+ * AI Chat Widget — now a pure presentation component.
+ * All state and logic lives in useChat hook.
+ */
 export const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    if (isOpen) {
-      inputRef.current?.focus();
-    }
-  }, [isOpen]);
-
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-
-    const userMsg: ChatMessage = { role: 'user', content: input.trim() };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
-    setLoading(true);
-
-    try {
-      const response = await agentApi.chat({
-        message: userMsg.content,
-        context: { url: window.location.pathname },
-      });
-
-      const assistantMsg: ChatMessage = { role: 'assistant', content: response.answer };
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch {
-      const errorMsg: ChatMessage = {
-        role: 'assistant',
-        content: 'Sorry, something went wrong. Please try again.',
-      };
-      setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  const {
+    isOpen,
+    messages,
+    input,
+    loading,
+    messagesEndRef,
+    inputRef,
+    open,
+    close,
+    setInput,
+    sendMessage,
+    handleKeyDown,
+  } = useChat();
 
   return (
     <>
-      {/* Floating button */}
       <button
         className={`${styles.fab} ${isOpen ? styles.fabHidden : ''}`}
-        onClick={() => setIsOpen(true)}
+        onClick={open}
         id="chat-fab"
       >
         <MessageSquare size={22} />
         <span className={styles.fabPulse} />
       </button>
 
-      {/* Chat panel */}
       {isOpen && (
         <div className={styles.panel}>
           <div className={styles.header}>
@@ -89,7 +49,7 @@ export const ChatWidget = () => {
                 <span className={styles.headerStatus}>Online</span>
               </div>
             </div>
-            <button className={styles.closeBtn} onClick={() => setIsOpen(false)}>
+            <button className={styles.closeBtn} onClick={close}>
               <X size={18} />
             </button>
           </div>
@@ -103,18 +63,13 @@ export const ChatWidget = () => {
             )}
 
             {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`${styles.message} ${styles[msg.role]}`}
-              >
+              <div key={i} className={`${styles.message} ${styles[msg.role]}`}>
                 <div className={styles.messageAvatar}>
                   {msg.role === 'assistant' ? <Bot size={14} /> : <User size={14} />}
                 </div>
                 <div className={styles.messageContent}>
                   {msg.role === 'assistant' ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {msg.content}
-                    </ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                   ) : (
                     <p>{msg.content}</p>
                   )}
@@ -124,12 +79,8 @@ export const ChatWidget = () => {
 
             {loading && (
               <div className={`${styles.message} ${styles.assistant}`}>
-                <div className={styles.messageAvatar}>
-                  <Bot size={14} />
-                </div>
-                <div className={styles.typing}>
-                  <span /><span /><span />
-                </div>
+                <div className={styles.messageAvatar}><Bot size={14} /></div>
+                <div className={styles.typing}><span /><span /><span /></div>
               </div>
             )}
 

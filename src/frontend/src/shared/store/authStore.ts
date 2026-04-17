@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { User } from '@/shared/types';
+import { STORAGE_KEYS } from '@/shared/lib/constants';
 
 interface AuthStore {
   token: string | null;
@@ -17,14 +18,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
   token: null,
   user: null,
   isLoading: true,
+
   setAuth: (token, user) => {
-    localStorage.setItem('access_token', token);
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
     set({ token, user, isLoading: false });
   },
+
   clearAuth: () => {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     set({ token: null, user: null, isLoading: false });
   },
+
   setUser: (user) => set({ user }),
   setLoading: (isLoading) => set({ isLoading }),
 }));

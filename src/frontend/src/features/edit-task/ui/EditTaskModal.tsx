@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Modal, Button } from '@/shared/ui';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Modal, Button, FormField, SegmentedControl } from '@/shared/ui';
 import { tasksApi } from '@/shared/api';
-import { Task, TaskPriority, TaskStatus } from '@/shared/types';
-import { useToast } from '@/shared/providers';
+import { Task, TaskPriority, TaskStatus, TaskUpdateRequest } from '@/shared/types';
+import { useApiAction } from '@/shared/hooks';
+import { PRIORITY_OPTIONS, STATUS_OPTIONS } from '@/shared/lib/constants';
 import styles from './EditTaskModal.module.scss';
 
 interface EditTaskModalProps {
@@ -14,14 +15,29 @@ interface EditTaskModalProps {
   task: Task | null;
 }
 
+/** Computes only the fields that actually changed (partial update). */
+function computeChanges(
+  task: Task,
+  title: string,
+  content: string,
+  priority: TaskPriority,
+  status: TaskStatus,
+): TaskUpdateRequest | null {
+  const updates: TaskUpdateRequest = {};
+
+  if (title !== task.title) updates.title = title;
+  if ((content || null) !== task.content) updates.content = content || null;
+  if (priority !== task.priority) updates.priority = priority;
+  if (status !== task.status) updates.status = status;
+
+  return Object.keys(updates).length > 0 ? updates : null;
+}
+
 export const EditTaskModal = ({ isOpen, onClose, onSuccess, task }: EditTaskModalProps) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [status, setStatus] = useState<TaskStatus>('todo');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { showToast } = useToast();
 
   useEffect(() => {
     if (task) {
@@ -32,94 +48,73 @@ export const EditTaskModal = ({ isOpen, onClose, onSuccess, task }: EditTaskModa
     }
   }, [task]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!task) return;
+  const updateAction = useCallback(
+    () => {
+      if (!task) return Promise.reject(new Error('No task'));
+      const changes = computeChanges(task, title, content, priority, status);
+      if (!changes) {
+        onClose();
+        return Promise.resolve(task);
+      }
+      return tasksApi.update(task.id, changes);
+    },
+    [task, title, content, priority, status, onClose],
+  );
 
-    setLoading(true);
-    setError('');
-
-    const updates: Record<string, any> = {};
-    if (title !== task.title) updates.title = title;
-    if ((content || null) !== task.content) updates.content = content || null;
-    if (priority !== task.priority) updates.priority = priority;
-    if (status !== task.status) updates.status = status;
-
-    if (Object.keys(updates).length === 0) {
-      onClose();
-      return;
-    }
-
-    try {
-      await tasksApi.update(task.id, updates);
-      showToast('Task updated successfully', 'success');
+  const { execute, loading, error, clearError } = useApiAction(updateAction, {
+    successMessage: 'Task updated successfully',
+    errorFallback: 'Failed to update task',
+    onSuccess: () => {
       onSuccess();
       onClose();
-    } catch (err: any) {
-      const detail = err.response?.data?.detail || 'Failed to update task';
-      setError(detail);
-      showToast(detail, 'error');
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    await execute();
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Task">
       <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.field}>
-          <label className={styles.label}>Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className={styles.input}
-            placeholder="Task title..."
-            maxLength={255}
-          />
-        </div>
+        <FormField
+          label="Title"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Task title..."
+          maxLength={255}
+        />
 
-        <div className={styles.field}>
-          <label className={styles.label}>Description</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className={styles.textarea}
-            placeholder="Task description..."
-            rows={4}
-          />
-        </div>
+        <FormField
+          label="Description"
+          as="textarea"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Task description..."
+          rows={4}
+        />
 
         <div className={styles.field}>
           <label className={styles.label}>Priority</label>
-          <div className={styles.priorityGroup}>
-            {(['high', 'medium', 'low'] as TaskPriority[]).map((p) => (
-              <button
-                key={p}
-                type="button"
-                className={`${styles.priorityBtn} ${priority === p ? styles.active : ''} ${styles[p]}`}
-                onClick={() => setPriority(p)}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={PRIORITY_OPTIONS}
+            value={priority}
+            onChange={setPriority}
+            variant="priority"
+          />
         </div>
 
         <div className={styles.field}>
           <label className={styles.label}>Status</label>
-          <div className={styles.statusGroup}>
-            {(['todo', 'in_progress', 'done'] as TaskStatus[]).map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={`${styles.statusBtn} ${status === s ? styles.activeStatus : ''}`}
-                onClick={() => setStatus(s)}
-              >
-                {s === 'todo' ? 'To Do' : s === 'in_progress' ? 'In Progress' : 'Done'}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={STATUS_OPTIONS}
+            value={status}
+            onChange={setStatus}
+            variant="status"
+          />
         </div>
 
         {error && <div className={styles.error}>{error}</div>}

@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Modal, Button } from '@/shared/ui';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Modal } from '@/shared/ui';
 import { tasksApi, usersApi } from '@/shared/api';
 import { User, Task } from '@/shared/types';
 import { useToast } from '@/shared/providers';
+import { extractApiError } from '@/shared/lib/api-error';
+import { ROLE_COLORS } from '@/shared/lib/constants';
 import { UserMinus, Check } from 'lucide-react';
 import styles from './AssignTaskModal.module.scss';
 
@@ -22,9 +24,7 @@ export const AssignTaskModal = ({ isOpen, onClose, onSuccess, task }: AssignTask
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (isOpen) {
-      loadUsers();
-    }
+    if (isOpen) loadUsers();
   }, [isOpen]);
 
   const loadUsers = async () => {
@@ -32,14 +32,14 @@ export const AssignTaskModal = ({ isOpen, onClose, onSuccess, task }: AssignTask
     try {
       const data = await usersApi.getAll();
       setUsers(data.filter((u) => u.is_active));
-    } catch {
-      showToast('Failed to load users', 'error');
+    } catch (err) {
+      showToast(extractApiError(err, 'Failed to load users'), 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAssign = async (userId: number | null) => {
+  const handleAssign = useCallback(async (userId: number | null) => {
     if (!task) return;
     setAssigning(true);
     try {
@@ -47,20 +47,14 @@ export const AssignTaskModal = ({ isOpen, onClose, onSuccess, task }: AssignTask
       showToast(userId ? 'Task assigned successfully' : 'Task unassigned', 'success');
       onSuccess();
       onClose();
-    } catch (err: any) {
-      const detail = err.response?.data?.detail || 'Failed to assign task';
-      showToast(detail, 'error');
+    } catch (err) {
+      showToast(extractApiError(err, 'Failed to assign task'), 'error');
     } finally {
       setAssigning(false);
     }
-  };
+  }, [task, showToast, onSuccess, onClose]);
 
-  const roleColors: Record<string, string> = {
-    worker: 'var(--accent-primary)',
-    lead: 'var(--accent-warning)',
-    manager: 'var(--accent-secondary)',
-    guest: 'var(--text-tertiary)',
-  };
+  const isCurrentAssignee = (userId: number) => task?.assignee_id === userId;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Assign Task">
@@ -85,9 +79,9 @@ export const AssignTaskModal = ({ isOpen, onClose, onSuccess, task }: AssignTask
             users.map((user) => (
               <button
                 key={user.id}
-                className={`${styles.userItem} ${task?.assignee_id === user.id ? styles.current : ''}`}
+                className={`${styles.userItem} ${isCurrentAssignee(user.id) ? styles.current : ''}`}
                 onClick={() => handleAssign(user.id)}
-                disabled={assigning || task?.assignee_id === user.id}
+                disabled={assigning || isCurrentAssignee(user.id)}
               >
                 <div className={styles.userAvatar}>
                   {user.email.charAt(0).toUpperCase()}
@@ -96,12 +90,12 @@ export const AssignTaskModal = ({ isOpen, onClose, onSuccess, task }: AssignTask
                   <span className={styles.userEmail}>{user.email}</span>
                   <span
                     className={styles.userRole}
-                    style={{ color: roleColors[user.role] || 'var(--text-tertiary)' }}
+                    style={{ color: ROLE_COLORS[user.role] }}
                   >
                     {user.role}
                   </span>
                 </div>
-                {task?.assignee_id === user.id && (
+                {isCurrentAssignee(user.id) && (
                   <Check size={16} className={styles.checkIcon} />
                 )}
               </button>

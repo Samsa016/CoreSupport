@@ -1,69 +1,73 @@
-// === ENUMS ===
-export type UserRole = "guest" | "worker" | "lead" | "manager";
-export type TaskStatus = "todo" | "in_progress" | "done";
-export type TaskPriority = "high" | "medium" | "low";
+// ─── Union Types ──────────────────────────────────────────
 
-// === ENTITIES ===
+export type UserRole = 'guest' | 'worker' | 'lead' | 'manager'
+export type TaskStatus = 'todo' | 'in_progress' | 'done'
+export type TaskPriority = 'high' | 'medium' | 'low'
+
+// ─── Domain Entities ──────────────────────────────────────
+
 export interface User {
-  id: number;
-  email: string;
-  is_active: boolean;
-  role: UserRole;
-  is_working: boolean;
+  id: number
+  email: string
+  is_active: boolean
+  role: UserRole
+  is_working: boolean
 }
 
 export interface Task {
-  id: number;
-  title: string;
-  content: string | null;
-  priority: TaskPriority;
-  status: TaskStatus;
-  assignee_id: number | null;
-  created_at: string;
-  updated_at: string;
+  id: number
+  title: string
+  content: string | null
+  priority: TaskPriority
+  status: TaskStatus
+  assignee_id: number | null
+  created_at: string
+  updated_at: string
 }
 
-// === API REQUEST BODIES ===
+// ─── Request DTOs ─────────────────────────────────────────
+
 export interface LoginRequest {
-  username: string;
-  password: string;
+  username: string
+  password: string
 }
 
 export interface TaskCreateRequest {
-  title: string;
-  content?: string | null;
-  priority: TaskPriority;
+  title: string
+  content?: string | null
+  priority: TaskPriority
 }
 
 export interface TaskUpdateRequest {
-  title?: string;
-  content?: string | null;
-  priority?: TaskPriority;
-  status?: TaskStatus;
+  title?: string
+  content?: string | null
+  priority?: TaskPriority
+  status?: TaskStatus
 }
 
 export interface TaskAssignRequest {
-  assignee_id: number | null;
+  assignee_id: number | null
 }
 
 export interface ChatRequest {
-  message: string;
+  message: string
   context?: {
-    url: string;
-    errors?: string;
-  };
+    url: string
+    errors?: string
+  }
 }
 
-// === API RESPONSE BODIES ===
+// ─── Response DTOs ────────────────────────────────────────
+
 export interface LoginResponse {
-  access_token: string;
-  token_type: "bearer";
+  access_token: string
+  token_type: 'bearer'
 }
 
 export interface ChatResponse {
-  answer: string;
+  answer: string
 }
 
 export interface ApiError {
-  detail: string;
+  detail: string
 }

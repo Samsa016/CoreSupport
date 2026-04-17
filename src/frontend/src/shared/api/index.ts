@@ -1,5 +1,5 @@
-export { apiClient } from './client';
-export { authApi } from './auth';
-export { tasksApi } from './tasks';
-export { agentApi } from './agent';
-export { usersApi } from './users';
+export { apiClient, http, endpoints } from './client'
+export * as authApi from './auth'
+export * as tasksApi from './tasks'
+export * as agentApi from './agent'
+export * as usersApi from './users'

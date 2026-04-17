@@ -1,9 +1,7 @@
-import { apiClient } from './client';
-import { ChatRequest, ChatResponse } from '@/shared/types';
+import { http, endpoints } from './client'
+import { ChatRequest, ChatResponse } from '@/shared/types'
 
-export const agentApi = {
-  chat: async (request: ChatRequest): Promise<ChatResponse> => {
-    const { data } = await apiClient.post<ChatResponse>('/agent/chat', request);
-    return data;
-  },
-};
+/** Send a message to the AI agent and receive a markdown-formatted answer */
+export function chat(body: ChatRequest) {
+  return http.post<ChatResponse>(endpoints.agent.chat, body)
+}

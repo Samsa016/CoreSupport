@@ -1,49 +1,56 @@
-import { apiClient } from './client';
-import { Task, TaskCreateRequest, TaskUpdateRequest, TaskAssignRequest, TaskStatus } from '@/shared/types';
+import { http, endpoints } from './client'
+import {
+  Task,
+  TaskCreateRequest,
+  TaskUpdateRequest,
+  TaskAssignRequest,
+  TaskStatus,
+} from '@/shared/types'
 
-export const tasksApi = {
-  getAll: async (status?: TaskStatus): Promise<Task[]> => {
-    const params = status ? { status } : {};
-    const { data } = await apiClient.get<Task[]>('/tasks', { params });
-    return data;
-  },
+/** Fetch all tasks, optionally filtered by status */
+export function getAll(status?: TaskStatus) {
+  return http.get<Task[]>(
+    endpoints.tasks.list,
+    status ? { params: { status } } : undefined,
+  )
+}
 
-  getMy: async (): Promise<Task[]> => {
-    const { data } = await apiClient.get<Task[]>('/tasks/my');
-    return data;
-  },
+/** Fetch tasks assigned to the current user */
+export function getMy() {
+  return http.get<Task[]>(endpoints.tasks.my)
+}
 
-  getById: async (id: number): Promise<Task> => {
-    const { data } = await apiClient.get<Task>(`/tasks/${id}`);
-    return data;
-  },
+/** Fetch a single task by ID */
+export function getById(id: number) {
+  return http.get<Task>(endpoints.tasks.byId(id))
+}
 
-  create: async (taskData: TaskCreateRequest): Promise<Task> => {
-    const { data } = await apiClient.post<Task>('/tasks/', taskData);
-    return data;
-  },
+/** Create a new task (lead/manager only) */
+export function create(body: TaskCreateRequest) {
+  return http.post<Task>(endpoints.tasks.list + '/', body)
+}
 
-  update: async (id: number, taskData: TaskUpdateRequest): Promise<Task> => {
-    const { data } = await apiClient.patch<Task>(`/tasks/${id}`, taskData);
-    return data;
-  },
+/** Partial update of a task (lead/manager only) */
+export function update(id: number, body: TaskUpdateRequest) {
+  return http.patch<Task>(endpoints.tasks.byId(id), body)
+}
 
-  take: async (id: number): Promise<Task> => {
-    const { data } = await apiClient.patch<Task>(`/tasks/${id}/take`);
-    return data;
-  },
+/** Current user takes a free task */
+export function take(id: number) {
+  return http.patch<Task>(endpoints.tasks.take(id))
+}
 
-  release: async (id: number): Promise<Task> => {
-    const { data } = await apiClient.patch<Task>(`/tasks/${id}/release`);
-    return data;
-  },
+/** Current user releases their assigned task */
+export function release(id: number) {
+  return http.patch<Task>(endpoints.tasks.release(id))
+}
 
-  assign: async (id: number, assignData: TaskAssignRequest): Promise<Task> => {
-    const { data } = await apiClient.patch<Task>(`/tasks/${id}/assign`, assignData);
-    return data;
-  },
+/** Assign a task to a user, or unassign with null (lead/manager only) */
+export function assign(id: number, body: TaskAssignRequest) {
+  return http.patch<Task>(endpoints.tasks.assign(id), body)
+}
 
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/tasks/${id}`);
-  },
-};
+/** Delete a task permanently (manager only) */
+export function remove(id: number) {
+  return http.del(endpoints.tasks.byId(id))
+}
