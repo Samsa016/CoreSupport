@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Task } from '@/shared/types';
+import { Task, TaskStatus } from '@/shared/types';
 import { tasksApi } from '@/shared/api';
 import { useToast } from '@/shared/providers';
 import { extractApiError } from '@/shared/lib/api-error';
@@ -69,6 +69,32 @@ export function useTasks(mode: 'all' | 'my') {
     [mutate],
   );
 
+  /**
+   * Optimistic status update for drag-and-drop.
+   * Immediately moves the card to the new column, reverts on error.
+   */
+  const updateTaskStatus = useCallback(
+    async (taskId: number, newStatus: TaskStatus) => {
+      // Save previous state for rollback
+      const previousTasks = [...tasks];
+
+      // Optimistic update
+      setTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)),
+      );
+
+      try {
+        await tasksApi.update(taskId, { status: newStatus });
+        showToast('Task moved!', 'success');
+      } catch (err) {
+        // Rollback on failure
+        setTasks(previousTasks);
+        showToast(extractApiError(err, 'Failed to move task'), 'error');
+      }
+    },
+    [tasks, showToast],
+  );
+
   return {
     tasks,
     loading,
@@ -76,5 +102,6 @@ export function useTasks(mode: 'all' | 'my') {
     takeTask,
     releaseTask,
     deleteTask,
+    updateTaskStatus,
   };
 }

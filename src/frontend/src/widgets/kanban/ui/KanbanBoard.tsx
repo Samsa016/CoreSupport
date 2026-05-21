@@ -18,17 +18,17 @@ interface KanbanBoardProps {
 }
 
 /**
- * Kanban Board — refactored from 230-line God-component into a
- * ~90-line orchestrator that composes:
- *   - useTasks hook (data + mutations)
- *   - usePermissions hook (role checks)
- *   - KanbanColumn (column rendering)
- *   - TaskActions (action buttons)
- *   - Feature modals (create/edit/assign)
+ * Kanban Board with drag-and-drop support.
+ * Orchestrates useTasks (data + mutations), usePermissions (role checks),
+ * KanbanColumn (column rendering + drop zones), TaskActions (action buttons),
+ * and feature modals (create/edit/assign).
  */
 export const KanbanBoard = ({ mode }: KanbanBoardProps) => {
-  const { tasks, loading, fetchTasks, takeTask, releaseTask, deleteTask } = useTasks(mode);
+  const { tasks, loading, fetchTasks, takeTask, releaseTask, deleteTask, updateTaskStatus } = useTasks(mode);
   const { canCreate } = usePermissions();
+
+  // Drag-and-drop state
+  const [draggedTaskId, setDraggedTaskId] = useState<number | null>(null);
 
   // Modal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -41,6 +41,26 @@ export const KanbanBoard = ({ mode }: KanbanBoardProps) => {
     tasks.forEach((t) => grouped[t.status].push(t));
     return grouped;
   }, [tasks]);
+
+  // Drag-and-drop handlers
+  const handleDragStart = useCallback((taskId: number) => {
+    setDraggedTaskId(taskId);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedTaskId(null);
+  }, []);
+
+  const handleDrop = useCallback(
+    (taskId: number, newStatus: TaskStatus) => {
+      setDraggedTaskId(null);
+      // Find the task to check if the status actually changed
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task || task.status === newStatus) return;
+      updateTaskStatus(taskId, newStatus);
+    },
+    [tasks, updateTaskStatus],
+  );
 
   const renderActions = useCallback(
     (task: Task) => (
@@ -95,6 +115,10 @@ export const KanbanBoard = ({ mode }: KanbanBoardProps) => {
             label={label}
             tasks={tasksByStatus[value]}
             renderActions={renderActions}
+            draggedTaskId={draggedTaskId}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDrop={handleDrop}
           />
         ))}
       </div>

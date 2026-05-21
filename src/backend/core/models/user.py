@@ -26,7 +26,7 @@ class UserRole(str, PyEnum):
 class User(Base, IdIntPk, SQLAlchemyBaseUserTable[UserIdType]):
 
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name="user_role"),
+        SAEnum(UserRole, name="user_role", values_callable=lambda obj: [e.value for e in obj]),
         default=UserRole.GUEST,
         server_default=UserRole.GUEST.value,
         nullable=False,

@@ -31,14 +31,14 @@ class Task(Base, IdIntPk):
     content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     priority: Mapped[Priority] = mapped_column(
-        SAEnum(Priority, name="task_priority"),
+        SAEnum(Priority, name="task_priority", values_callable=lambda obj: [e.value for e in obj]),
         default=Priority.MEDIUM,
         server_default=Priority.MEDIUM.value,
         nullable=False,
     )
 
     status: Mapped[TaskStatus] = mapped_column(
-        SAEnum(TaskStatus, name="task_status"),
+        SAEnum(TaskStatus, name="task_status", values_callable=lambda obj: [e.value for e in obj]),
         default=TaskStatus.TODO,
         server_default=TaskStatus.TODO.value,
         nullable=False,

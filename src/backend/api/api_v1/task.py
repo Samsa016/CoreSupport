@@ -1,9 +1,10 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core import settings
-from backend.core.models import User
+from backend.core.models import User, db_helper
 from backend.core.models.task import TaskStatus
 from backend.core.schemas.task import TaskCreate, TaskRead, TaskUpdate, TaskAssign
 from backend.api.dependencies.tasks import get_task_service
@@ -53,13 +54,26 @@ async def get_task(
 @router.post("/", response_model=TaskRead, status_code=201)
 async def create_task(
     task_data: TaskCreate,
+    auto_assign: bool = False,
     task_service: TaskService = Depends(get_task_service),
+    session: AsyncSession = Depends(db_helper.session_getter),
     _: User = Depends(get_current_lead_or_manager),
 ):
     """Создание задачи. Задача создаётся свободной (TODO, без исполнителя).
+    Если auto_assign=True, то сразу запускается интеллектуальное планирование для этой задачи.
     Доступно только для LEAD и MANAGER.
     """
-    return await task_service.create_task(task_data=task_data)
+    task = await task_service.create_task(task_data=task_data)
+
+    if auto_assign:
+        from backend.services.planning import PlanningService
+        from backend.core.schemas.planning import PlanningParams
+
+        planning_service = PlanningService(session)
+        await planning_service.run_planning(PlanningParams(max_tasks_per_worker=5))
+        await session.refresh(task)
+
+    return task
 
 
 @router.patch("/{task_id}", response_model=TaskRead)

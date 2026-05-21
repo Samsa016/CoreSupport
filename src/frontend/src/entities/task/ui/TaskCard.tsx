@@ -1,35 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Clock, User, AlertTriangle, CheckCircle, Circle } from 'lucide-react';
-import { Task, User as UserType } from '@/shared/types';
+import { Task } from '@/shared/types';
 import { Badge } from '@/shared/ui';
 import styles from './TaskCard.module.scss';
 
 interface TaskCardProps {
   task: Task;
   actions?: React.ReactNode;
+  onDragStart?: (taskId: number) => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 }
 
 const priorityConfig = {
-  high: { label: 'High', variant: 'danger' as const, icon: AlertTriangle },
-  medium: { label: 'Medium', variant: 'warning' as const, icon: Circle },
-  low: { label: 'Low', variant: 'success' as const, icon: CheckCircle },
+  high: { label: 'High', variant: 'danger' as const, icon: AlertTriangle, style: styles.priorityHigh },
+  medium: { label: 'Medium', variant: 'warning' as const, icon: Circle, style: styles.priorityMedium },
+  low: { label: 'Low', variant: 'success' as const, icon: CheckCircle, style: styles.priorityLow },
 };
 
-const statusLabels: Record<string, string> = {
-  todo: 'To Do',
-  in_progress: 'In Progress',
-  done: 'Done',
-};
-
-export const TaskCard = ({ task, actions }: TaskCardProps) => {
+export const TaskCard = ({ task, actions, onDragStart, onDragEnd, isDragging }: TaskCardProps) => {
   const priority = priorityConfig[task.priority];
-  const PriorityIcon = priority.icon;
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('ru-RU', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -37,8 +33,32 @@ export const TaskCard = ({ task, actions }: TaskCardProps) => {
     });
   };
 
+  const handleDragStart = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.dataTransfer.setData('text/plain', String(task.id));
+      e.dataTransfer.effectAllowed = 'move';
+      onDragStart?.(task.id);
+    },
+    [task.id, onDragStart],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    onDragEnd?.();
+  }, [onDragEnd]);
+
+  const cardClasses = [
+    styles.card,
+    priority.style,
+    isDragging ? styles.dragging : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className={styles.card}>
+    <div
+      className={cardClasses}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <div className={styles.header}>
         <Badge variant={priority.variant} dot>
           {priority.label}

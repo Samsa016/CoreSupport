@@ -11,7 +11,7 @@ class UserRead(schemas.BaseUser[UserIdType]):
 
 
 class UserCreate(schemas.BaseUserCreate):
-    pass
+    role: Optional[UserRole] = UserRole.GUEST
 
 
 class UserUpdate(schemas.BaseUserUpdate):
